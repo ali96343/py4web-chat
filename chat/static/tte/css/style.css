@@ -1,0 +1,26 @@
+body {
+    padding-top: 20px;
+}
+input[type="text"] {
+    outline: none;
+}
+.input-large {
+    width: 450px;
+}
+.chat-messages {
+    height: 400px;
+    width: 70%;
+    margin: 20px 0;
+    overflow: auto;
+}
+.chat-messages .message {
+    margin: 10px 0;
+}
+.chat-messages address {
+    display: inline-block;
+    font-weight: bold;
+    margin-right: 10px
+}
+.chat-messages address:after {
+    content: ':';
+}
