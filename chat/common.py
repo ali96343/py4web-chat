@@ -50,21 +50,6 @@ flash = Flash()
 
 # #######################################################
 # pick the session type that suits you best
-#USE_BUS = True
-#BUS_TYPE = 'redis'
-if settings.REME_USE == True:
-    import redis
-    reme_mess  = {"Name":"Pradeep", "Company":"SCTL", "Address":"Mumbai", "Location":"RCP"}
-    
-    host, port = settings.REDIS_SERVER.split(":")
-    # for more options: https://github.com/andymccurdy/redis-py/blob/master/redis/client.py
-    #redis_pool = redis.ConnectionPool(host=host, port=int(port))
-    #settings.REME = redis.Redis(connection_pool=redis_pool)
-    #settings.REME = redis.ConnectionPool(host=host, port=int(port))
-    settings.REME = redis.Redis(host=host, port=int(port))
-    settings.REME.set(settings.APP_NAME, f'{settings.APP_NAME} started')
-    #settings.REME.hmset(settings.APP_NAME, reme_mess)
-
 # #######################################################
 if settings.SESSION_TYPE == "cookies":
     session = Session(secret=settings.SESSION_SECRET_KEY)

@@ -7,7 +7,7 @@ reme_debug = True
 
 # REME - py4web redis-message system
 # ab96343@gmail.com
-# 
+# version 030321.01 
 
 # idea from 
 # https://stackoverflow.com/questions/15144809/how-can-i-use-tornado-and-redis-asynchronously/15161744
@@ -22,6 +22,8 @@ import pickle
 import tornado.web
 import datetime
 import time
+#import uvloop
+#import asyncio
 
 async def start_siows(*args):
     import tornado
@@ -57,7 +59,7 @@ class OpenChannel(threading.Thread):
 
     # thread loop
     def run(self):
-        output_list_limit = 2 # 10
+        output_list_limit = 10
         for message in self.pubsub.listen():
            with self.lock:
                 if len (self.output) > output_list_limit:
@@ -164,6 +166,7 @@ def tornadoRemeServer():
     import json
 
     class WsHandler(tornado.websocket.WebSocketHandler,  ApplicationMixin ):
+
         def simple_init(self):
             self.stop = False
             self.app_name = 'remetest'
@@ -171,10 +174,12 @@ def tornadoRemeServer():
                 for message in self.application.channels['WS'].output[::-1]:
                     if isinstance( message, bytes ):
                         self.data = json.loads(message)
-                        if 'from' in self.data:
+                        if all([k in self.data  for k in self.get_sms_keys() ]):
                             self.app_name = self.data['from']
-                        if self.data['cmd'] != 'allow': 
-                           self.close()
+                            if self.data['cmd'] != 'allow': 
+                               self.close()
+                        else:
+                             print ('bad sms format!')
                         break     
         def open(self):
             connections_limit = 100
@@ -192,16 +197,15 @@ def tornadoRemeServer():
             if any( [  not message, len(message) > 1000 ] ) :
                 return
             cli_mess = message
-            for key, value in enumerate(self.application.WsPool):
+            for value in self.application.WsPool:
                 if value != self:
                      value.ws_connection.write_message(message)
 
             self.CallWsgi( app_name = self.app_name, ctrl = 'ws_message',  data = {'user_data': cli_mess} )
         
         def on_close(self):
-            for key, value in enumerate(self.application.WsPool):
-                if value == self:
-                    del self.application.WsPool[key]
+            if self in self.application.WsPool:
+                self.application.WsPool.remove(self)
             self.stop= True
             #self.CallWsgi( self.app_name, 'ws_close', )
 #---------------------------------------------------------------------------------------------------
@@ -223,6 +227,7 @@ def tornadoRemeServer():
 
 #---------------------------------------------------------------------------------------------------
     class TornadoRemeServer(ServerAdapter):
+        
 
         def run(self, handler): # pragma: no cover
             if siows_debug: self.quiet = True 
