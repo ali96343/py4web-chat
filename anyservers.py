@@ -145,7 +145,6 @@ class ApplicationMixin: #(object):
     
 
 class ReadChannel(tornado.web.RequestHandler, ApplicationMixin):
-    #@tornado.web.asynchronous
     async def get(self, channel):
         # get the channel
         channel = self.GetChannel(channel)
@@ -183,11 +182,11 @@ def tornadoRemeServer():
             if len (self.application.WsPool) < connections_limit:
                 self.application.WsPool.append(self)
             else:
-                print ( 'ws_connestions limited !!!'  )
+                print ( 'WsPool limited !!!'  )
                 self.write('WsPool limited')
                 self.close()
                 self.finish()
-            self.CallWsgi( self.app_name, 'ws_open' )
+            #self.CallWsgi( self.app_name, 'ws_open' )
             
         def on_message(self, message):
             if any( [  not message, len(message) > 1000 ] ) :
@@ -200,15 +199,11 @@ def tornadoRemeServer():
             self.CallWsgi( app_name = self.app_name, ctrl = 'ws_message',  data = {'user_data': cli_mess} )
         
         def on_close(self):
-
             for key, value in enumerate(self.application.WsPool):
                 if value == self:
                     del self.application.WsPool[key]
             self.stop= True
-            self.CallWsgi( self.app_name, 'ws_close', )
-        
-        def check_origin(self, origin):
-            return True
+            #self.CallWsgi( self.app_name, 'ws_close', )
 #---------------------------------------------------------------------------------------------------
     # https://klen.github.io/tornadio_socket-io.html 
     sio = socketio.AsyncServer(async_mode='tornado')
@@ -226,6 +221,7 @@ def tornadoRemeServer():
          siows_debug and  print('sio: from client: ', data)
          await sio.emit("py4web_echo", data)
 
+#---------------------------------------------------------------------------------------------------
     class TornadoRemeServer(ServerAdapter):
 
         def run(self, handler): # pragma: no cover
@@ -240,8 +236,7 @@ def tornadoRemeServer():
             container = tornado.wsgi.WSGIContainer(handler)
 
             app= tornado.web.Application([
-                    (r"/favicon.ico", FaviconHandler),
-                    (r"/robots.txt", FaviconHandler),
+                    (r"/favicon.ico|/robots.txt", FaviconHandler),
                     (r"/channel/(?P<channel>\S+)", ReadChannel),
                     (r'/websocket/?', WsHandler),
                     (r"/socket.io/", socketio.get_tornado_handler(sio) ),
