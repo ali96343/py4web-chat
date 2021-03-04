@@ -86,7 +86,6 @@ class ApplicationMixin: #(object):
             self.application.channels[channel].start()
         return self.application.channels[channel]
 
-
     def handle_request(self, response): pass
 
     def sms_example(self, to='myapp', from_= 'WS'): 
@@ -166,11 +165,17 @@ def tornadoRemeServer():
     import json
 
     class WsHandler(tornado.websocket.WebSocketHandler,  ApplicationMixin ):
+        def initialize(self, ):
+            if not 'WS' in self.application.channels:
+                channel = 'WS'
+                WSc = self.GetChannel(channel)
+                #print ('===: ',WSc)
 
         def simple_init(self):
             self.stop = False
             self.app_name = 'remetest'
             if 'WS' in self.application.channels:
+                #for message in self.WSc.output[::-1]:
                 for message in self.application.channels['WS'].output[::-1]:
                     if isinstance( message, bytes ):
                         self.data = json.loads(message)
@@ -209,9 +214,7 @@ def tornadoRemeServer():
             self.stop= True
             #self.CallWsgi( self.app_name, 'ws_close', )
 #---------------------------------------------------------------------------------------------------
-    # https://klen.github.io/tornadio_socket-io.html 
     sio = socketio.AsyncServer(async_mode='tornado')
-
     @sio.event
     async def connect(sid, environ):
         siows_debug and print('sio: connect ', sid)
@@ -242,7 +245,7 @@ def tornadoRemeServer():
 
             app= tornado.web.Application([
                     (r"/favicon.ico|/robots.txt", FaviconHandler),
-                    (r"/channel/(?P<channel>\S+)", ReadChannel),
+                 #   (r"/channel/(?P<channel>\S+)", ReadChannel),
                     (r'/websocket/?', WsHandler),
                     (r"/socket.io/", socketio.get_tornado_handler(sio) ),
                     (r".*", tornado.web.FallbackHandler, dict(fallback=container) ),
@@ -253,8 +256,6 @@ def tornadoRemeServer():
             server = tornado.httpserver.HTTPServer(app)
             server.listen(port=self.port,address=self.host)
             loop = tornado.ioloop.IOLoop.current()
-
-            loop.add_timeout(datetime.timedelta(seconds=2), start_siows,  [ self.host, self.port  ])
 
             try:
                 loop.start()
