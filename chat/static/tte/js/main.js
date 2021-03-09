@@ -2,7 +2,7 @@ $(function () {
 
     var Socket = {
         ws: null,
-        init: function () {
+        init: function connect () {
             ws = new WebSocket('ws://' + document.location.host + '/websocket');
             ws.onopen = function () {
                 console.log('Socket opened');
@@ -10,6 +10,14 @@ $(function () {
 
             ws.onclose = function () {
                 console.log('Socket closed');
+
+setTimeout(function() {
+      connect();
+    }, 1000);
+// https://stackoverflow.com/questions/22431751/websocket-how-to-automatically-reconnect-after-it-dies
+
+
+
             };
 
             ws.onmessage = function (e) {
