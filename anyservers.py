@@ -8,7 +8,7 @@ siows_debug = True
 
 # REME - py4web redis-message system
 # ab96343@gmail.com
-# version 080321.01
+# version 090321.01
 
 # idea from
 # https://stackoverflow.com/questions/15144809/how-can-i-use-tornado-and-redis-asynchronously/15161744
@@ -152,6 +152,10 @@ class ApplicationMixin:  # (object):
         tornado.httpclient.AsyncHTTPClient().fetch(request, self.handle_request)
 
     def CallWsgi(self, app_name="remetest", ctrl="index", data={}):
+        if app_name is None:
+            print ('CallWsgi: app_name is None! ', app_name)
+            return
+        #print( 'app_name   ',app_name  )
         self.PubSms(app_name)
         if len(data) == 0:
             self.WsgiGet(app_name=app_name, ctrl=ctrl, mess="empty_mess")
@@ -181,10 +185,10 @@ def tornadoRemeServer():
             if not "WS" in self.application.channels:
                 self.GetChannel("WS")
                 print ('up WS')
+            self.app_name = None
 
         def simple_init(self):
             self.stop = False
-            self.app_name = None
             if not "WS" in self.application.channels:
                 print("error:  where WS?!")
                 self.stop = True
@@ -209,6 +213,7 @@ def tornadoRemeServer():
         def open(self):
             self.simple_init()
             self.application.WsPool.add(self)
+            self.CallWsgi( app_name = self.app_name, ctrl = 'ws_open', )
 
         def on_message(self, message):
             # if any( [self.stop is True, not self in self.application.WsPool , not message, len(message) > 1000 ]):
@@ -227,7 +232,12 @@ def tornadoRemeServer():
         def on_close(self):
             self.application.WsPool.discard(self)
             self.stop = True
-            # self.CallWsgi( self.app_name, 'ws_close', )
+            self.CallWsgi( app_name = self.app_name, ctrl = 'ws_close', )
+
+        #crossdomain connections allowed
+        def check_origin(self, origin):
+             return True
+
 
     # ---------------------------------------------------------------------------------------------------
     sio = socketio.AsyncServer(
