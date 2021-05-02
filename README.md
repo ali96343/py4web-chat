@@ -11,7 +11,7 @@ the application and the tornado server )
 
 4 run server with REME system
 
-5 ./py4web.py run -s tornadoRemeServer apps
+./py4web.py run -s tornadoRemeServer apps
 
-6 firefox localhost:8000/chat
+firefox localhost:8000/chat
 
