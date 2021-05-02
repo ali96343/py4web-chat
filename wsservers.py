@@ -14,7 +14,7 @@ siows_debug = True
 # https://stackoverflow.com/questions/15144809/how-can-i-use-tornado-and-redis-asynchronously/15161744
 #
 
-anyservers_list = ["tornadoRemeServer"]
+wsservers_list = ["tornadoRemeServer"]
 
 import threading
 import redis
