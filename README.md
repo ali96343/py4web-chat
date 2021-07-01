@@ -1,5 +1,8 @@
 # websocket multiuser py4web-chat
 
+
+0 pip install -r requirements.txt
+
 1 run the Redis server on a standard port
 
 2 cp wsservers.py to py4web/py4web/utils/
